@@ -1,0 +1,1 @@
+web: gunicorn tg_parser_flask_app:app

@@ -1,0 +1,6 @@
+Flask
+g4f
+python-dotenv
+requests
+Telethon
+gunicorn
