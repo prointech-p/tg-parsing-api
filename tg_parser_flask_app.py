@@ -16,11 +16,6 @@ app.config['SESSION_STR'] = os.environ.get('SESSION_STR', 'SESSION_STR123456')
 print(f"API_ID: {app.config['API_ID']}")
 print(f"API_HASH: {app.config['API_HASH']}")
 
-# proxy_address = PROXY_ADDRESS
-# proxy_port = PROXY_PORT
-# # proxy = (proxy_address, proxy_port)  # Укажите прокси
-# proxy = ('socks5', proxy_address, proxy_port)
-# client = TelegramClient(StringSession(SESSION_STR), API_ID, API_HASH, proxy=proxy)
 client = TelegramClient(StringSession(app.config['SESSION_STR']), app.config['API_ID'], app.config['API_HASH'])
 
 # Функция получения постов из Телеграма
@@ -72,7 +67,12 @@ def get_structured_data(raw_data):
 
 
 def parse_tg_channel(channel_username, posts_count, base_prompt):
-    posts = asyncio.run(get_tg_posts(channel_username, posts_count))
+    # posts = asyncio.run(get_tg_posts(channel_username, posts_count))
+    # posts = client.loop.run_until_complete(get_tg_posts(channel_username, posts_count))  # Используем event loop TelegramClient
+    loop = asyncio.new_event_loop()  # Создаём новый event loop
+    asyncio.set_event_loop(loop)     # Устанавливаем его как текущий
+    posts = loop.run_until_complete(get_tg_posts(channel_username, posts_count))  # Выполняем асинхронную функцию
+    
     posts_str = "<Start_of_message>. ".join(posts)
     prompt = base_prompt + " " + posts_str
     ai_response = process_prompt(prompt)
@@ -86,7 +86,7 @@ def parse_tg_channel(channel_username, posts_count, base_prompt):
 
 
 @app.route('/parse-tg-channel', methods=['POST'])
-def create_collage_by_blob():
+def process_parsing():
     try:
         # Получение данных из запроса
         channel_username = request.json.get('channel_username', [])
