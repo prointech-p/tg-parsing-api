@@ -69,10 +69,13 @@ def get_structured_data(raw_data):
 def parse_tg_channel(channel_username, posts_count, base_prompt):
     # posts = asyncio.run(get_tg_posts(channel_username, posts_count))
     # posts = client.loop.run_until_complete(get_tg_posts(channel_username, posts_count))  # Используем event loop TelegramClient
-    loop = asyncio.new_event_loop()  # Создаём новый event loop
-    asyncio.set_event_loop(loop)     # Устанавливаем его как текущий
-    posts = loop.run_until_complete(get_tg_posts(channel_username, posts_count))  # Выполняем асинхронную функцию
-    
+    # loop = asyncio.new_event_loop()  # Создаём новый event loop
+    # asyncio.set_event_loop(loop)     # Устанавливаем его как текущий
+    # posts = loop.run_until_complete(get_tg_posts(channel_username, posts_count))  # Выполняем асинхронную функцию
+    loop = asyncio.get_event_loop()  # Получаем текущий event loop
+    task = asyncio.ensure_future(get_tg_posts(channel_username, posts_count))  # Создаём задачу
+    posts = loop.run_until_complete(task)  # Ждём выполнения
+
     posts_str = "<Start_of_message>. ".join(posts)
     prompt = base_prompt + " " + posts_str
     ai_response = process_prompt(prompt)
